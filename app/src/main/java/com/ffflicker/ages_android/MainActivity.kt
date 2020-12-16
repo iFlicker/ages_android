@@ -5,12 +5,15 @@ import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.view.WindowManager
-import android.widget.CompoundButton
 import android.widget.DatePicker
+import android.widget.EditText
 import android.widget.Switch
 import android.widget.TextView
 import java.text.SimpleDateFormat
@@ -21,31 +24,81 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
 
     companion object {
         public var mDateOfBirth:Long = 0
+        public var mTargetYear:Int = 35
+        val PARAM_BIRTH = "birth"
+        val PARAM_TARGET = "target"
     }
 
     private val mCalendar:Calendar = Calendar.getInstance()
     private lateinit var mDateTextView:TextView
+    private lateinit var mSP:SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        mSP = getSharedPreferences("ages", MODE_PRIVATE)
         mDateTextView = findViewById(R.id.date)
+
+        mDateOfBirth = getParam(PARAM_BIRTH, 0)
+        mTargetYear = getParam(PARAM_TARGET, 35).toInt()
+        findViewById<EditText>(R.id.countdown_age).setText(mTargetYear.toString())
+
+
         findViewById<View>(R.id.pickDate).setOnClickListener {
             openDatePicker()
         }
 
-        findViewById<Switch>(R.id.switchNotification).setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isChecked) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                    startForegroundService(Intent(this, AgeService::class.java))
-                else
-                    startService(Intent(this, AgeService::class.java))
-            } else {
-                stopService(Intent(this, AgeService::class.java))
-            }
+        val intent = Intent(this, AgeService::class.java)
+        findViewById<Switch>(R.id.switch_ages).setOnCheckedChangeListener { buttonView, isChecked ->
+            intent.putExtra(AgeService.ACTION_TYPE, AgeService.ACTION_AGES)
+            if (isChecked)
+                intent.putExtra(AgeService.ACTION_STATE, true)
+            else
+                intent.putExtra(AgeService.ACTION_STATE, false)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                startForegroundService(intent)
+            else
+                startService(intent)
         }
 
+        findViewById<Switch>(R.id.switch_countdown).setOnCheckedChangeListener { buttonView, isChecked ->
+            intent.putExtra(AgeService.ACTION_TYPE, AgeService.ACTION_COUNTDOWN)
+            if (isChecked)
+                intent.putExtra(AgeService.ACTION_STATE, true)
+            else
+                intent.putExtra(AgeService.ACTION_STATE, false)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                startForegroundService(intent)
+            else
+                startService(intent)
+        }
+
+        findViewById<EditText>(R.id.countdown_age).addTextChangedListener(
+            object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+                }
+
+                override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                }
+
+                override fun afterTextChanged(s: Editable?) {
+                    mTargetYear = s.toString() as Int
+                    saveParam(PARAM_TARGET, mTargetYear.toLong())
+                }
+            }
+        )
+
+    }
+
+    private fun saveParam(key:String, value:Long ) {
+        mSP.edit().putLong(key, value).apply()
+    }
+
+    private fun getParam(key:String, default:Long ) :Long {
+        return mSP.getLong(key, default)
     }
 
     private fun openDatePicker() {
@@ -68,6 +121,7 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
                 mCalendar.set(Calendar.DAY_OF_MONTH, day)
                 mDateTextView.text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(mCalendar.time)
                 mDateOfBirth = mCalendar.timeInMillis
+                saveParam(PARAM_BIRTH, mDateOfBirth)
                 dialog.cancel()
             }
             val dialog: Dialog = builder.create()
@@ -85,6 +139,7 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
         mCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
         mDateTextView.text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(mCalendar.time)
         mDateOfBirth = mCalendar.timeInMillis
+        saveParam(PARAM_BIRTH, mDateOfBirth)
     }
 
 

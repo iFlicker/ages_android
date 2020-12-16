@@ -1,10 +1,15 @@
 <resources>
     <string name="app_name">Ages</string>
-    <string name="date_of_birth">出生日期:</string>
-    <string name="pick_date">选择日期</string>
+    <string name="date_of_birth">点击下方按钮选择出生日期</string>
+    <string name="pick_date">选择生日</string>
     <string name="switch_open">开</string>
     <string name="switch_close">关</string>
-    <string name="switch_text">开关</string>
+    <string name="ages_switch_text">年龄提醒开关</string>
+    <string name="countdown_switch_text">岁倒计时开关</string>
     <string name="text_ok">确定</string>
     <string name="text_year">岁</string>
+    <string name="text_year2">年</string>
+
+    <string name="text_year3">距离35岁还有</string>
+    <string name="text_far_from">距离</string>
 </resources>

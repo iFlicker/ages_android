@@ -26,6 +26,7 @@
         android:layout_height="wrap_content"/>
 
     <LinearLayout
+        android:id="@+id/siwtch_layout_0"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/pickDate"
         android:layout_marginTop="30dp"
@@ -34,12 +35,43 @@
         android:orientation="horizontal">
 
         <TextView
-            android:text="@string/switch_text"
+            android:text="@string/ages_switch_text"
             android:textSize="18sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <Switch
-            android:id="@+id/switchNotification"
+            android:id="@+id/switch_ages"
+            android:textOff=""
+            android:textOn=""
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/siwtch_layout_0"
+        android:layout_marginTop="30dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/countdown_age"
+            android:digits="0123456789"
+            android:inputType="number"
+            android:maxLength="3"
+            android:text="35"
+            android:layout_width="35dp"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:text="@string/countdown_switch_text"
+            android:textSize="18sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Switch
+            android:id="@+id/switch_countdown"
             android:textOff=""
             android:textOn=""
             android:layout_width="wrap_content"
