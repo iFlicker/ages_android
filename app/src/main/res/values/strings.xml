@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Ages</string>
+    <string name="date_of_birth">出生日期:</string>
+    <string name="pick_date">选择日期</string>
+    <string name="switch_open">开</string>
+    <string name="switch_close">关</string>
+    <string name="switch_text">开关</string>
+    <string name="text_ok">确定</string>
+    <string name="text_year">岁</string>
+</resources>

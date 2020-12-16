@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 高度25,注意这里的高度是和track的高度一样的 -->
+    <size android:height="25dp" android:width="25dp"/>
+    <!-- 圆角弧度 180 就是一个圆-->
+    <corners android:radius="180dp"/>
+
+
+    <!-- 从左到右变化率 -->
+    <gradient
+        android:endColor="@color/colorAccent"
+        android:startColor="@color/colorAccent" />
+    <!--给圈画一个宽度为1dp的实线-->
+    <stroke android:width="1dp"
+        android:color="@color/colorAccent"/>
+
+</shape>

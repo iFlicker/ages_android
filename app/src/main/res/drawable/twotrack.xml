@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <!-- 高度25 -->
+    <size android:height="25dp"/>
+    <!-- 圆角弧度 20 -->
+    <corners android:radius="20dp"/>
+    <!-- 变化率 -->
+    <gradient
+        android:endColor="@color/colorpink"
+        android:startColor="@color/colorpink" />
+</shape>

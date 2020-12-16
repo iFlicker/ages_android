@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minHeight="40dp"
+    android:minWidth="250dp"
+    android:previewImage="@drawable/icon_ages"
+    android:initialLayout="@layout/layout_widget"
+    android:updatePeriodMillis="300"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen">
+
+</appwidget-provider>
