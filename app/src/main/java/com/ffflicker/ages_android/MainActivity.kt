@@ -70,7 +70,15 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
         findViewById<Switch>(R.id.switch_countdown).setOnCheckedChangeListener { buttonView, isChecked ->
             intent.putExtra(AgeService.ACTION_TYPE, AgeService.ACTION_COUNTDOWN)
             intent.putExtra(AgeService.ACTION_STATE, isChecked)
-
+            if(isChecked) {
+                val targetYear = mCalendar.get(Calendar.YEAR) + mTargetAge
+                if (targetYear < currentYear) {
+                    var newStr: String = (mTargetAge + (currentYear - targetYear) + 1).toString()
+                    findViewById<EditText>(R.id.countdown_age).setText(newStr)
+                    Toast.makeText(this@MainActivity, "目标年龄低于当前年龄！", Toast.LENGTH_SHORT).show()
+                    return@setOnCheckedChangeListener
+                }
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 startForegroundService(intent)
             else
@@ -86,6 +94,7 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
                 }
 
                 override fun afterTextChanged(s: Editable?) {
+                    if (s.toString() == "") return
                     mTargetAge = s.toString().toInt()
                     // 根据当前结果生日算出目标年龄时间戳
                     updateTargetTime()
@@ -100,7 +109,7 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
         val targetYear = mCalendar.get(Calendar.YEAR) + mTargetAge
         if (targetYear < currentYear) {
             var newStr: String = (mTargetAge + (currentYear - targetYear) + 1).toString()
-            findViewById<EditText>(R.id.countdown_age).setText(newStr)
+//            findViewById<EditText>(R.id.countdown_age).setText(newStr)
             Toast.makeText(this@MainActivity, "目标年龄低于当前年龄！", Toast.LENGTH_SHORT).show()
             return
         }
