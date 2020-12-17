@@ -1,6 +1,5 @@
 package com.ffflicker.ages_android
 
-import android.annotation.TargetApi
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -14,7 +13,10 @@ import android.os.IBinder
 import android.util.Log
 import android.widget.RemoteViews
 import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.abs
 import kotlin.math.roundToLong
 
 class AgeService : Service() {
@@ -28,7 +30,8 @@ class AgeService : Service() {
 
         val CHANNEL_ID_AGES = "Ages"
         val CHANNEL_ID_COUNTDOWN = "CountDown"
-        var year = 365 * 24 * 3600 * 1000.00
+        val year = 365 * 24 * 3600 * 1000.00
+        val day = 24 * 3600 * 1000.00;
         val NOTIFY_ID_AGES = 1
         val NOTIFY_ID_COUNTDOWN = 2
     }
@@ -209,7 +212,7 @@ class AgeService : Service() {
 
             // 算时间
             val time = DecimalFormat("0.00000000").format(
-                ((System.currentTimeMillis() - MainActivity.mDateOfBirth) / year * 100000000).roundToLong()
+                ((System.currentTimeMillis() - MainActivity.mDateOfBirth) / buildYearMillisDurationTime(MainActivity.mDateOfBirth, System.currentTimeMillis()) * 100000000).roundToLong()
                     .toDouble() / 100000000
             )
             Log.d(TAG, "agesWorkThread time: $time")
@@ -242,7 +245,7 @@ class AgeService : Service() {
             // 算时间
             mTargetYear = MainActivity.mTargetAge
             val time = DecimalFormat("0.00000000").format(
-                ((MainActivity.mTargetTimpStamp - System.currentTimeMillis()) / year * 100000000).roundToLong()
+                ((MainActivity.mTargetTimpStamp - System.currentTimeMillis()) / buildYearMillisDurationTime(System.currentTimeMillis(), MainActivity.mDateOfBirth ) * 100000000).roundToLong()
                     .toDouble() / 100000000
             )
             Log.d(TAG, "countdownWorkThread time: $time")
@@ -275,6 +278,32 @@ class AgeService : Service() {
         }
     }
 
+    private fun setTextColor(remoteView: RemoteViews, type: Int) {
+        remoteView.setTextColor(R.id.widget_years_end, MainActivity.textColor)
+        remoteView.setTextColor(R.id.widget_years, MainActivity.textColor)
+
+        if (ACTION_COUNTDOWN == type)
+            remoteView.setTextColor(R.id.widget_far, MainActivity.textColor)
+    }
+
+    // 根绝时间差的年数 加权闰年时长 求得较为精准的平均年毫秒
+    private fun buildYearMillisDurationTime(lastTime: Long, curTime: Long): Double {
+        var lastYear = SimpleDateFormat("yyyy").format(Date(lastTime)).toInt()
+        var curYear = SimpleDateFormat("yyyy").format(Date(curTime)).toInt()
+        val yearSub = abs((curYear - lastYear).toDouble())
+        var sum = 0
+        if (curYear < lastYear) {
+            curYear = lastYear.apply { lastYear = curYear }   // 真好用啊 kotlin万岁
+        }
+        while (lastYear <= curYear) {
+            if (lastYear % 4 == 0 && lastYear % 100 != 0 || lastYear % 400 == 0) {
+                sum++
+            }
+            lastYear++
+        }
+        return (yearSub * year + sum * day) / yearSub
+    }
+
 
     override fun onDestroy() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
@@ -287,12 +316,6 @@ class AgeService : Service() {
         return null
     }
 
-    private fun setTextColor(remoteView: RemoteViews, type: Int) {
-        remoteView.setTextColor(R.id.widget_years_end, MainActivity.textColor)
-        remoteView.setTextColor(R.id.widget_years, MainActivity.textColor)
 
-        if (ACTION_COUNTDOWN == type)
-            remoteView.setTextColor(R.id.widget_far, MainActivity.textColor)
-    }
 
 }
