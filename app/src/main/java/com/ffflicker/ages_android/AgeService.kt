@@ -64,8 +64,8 @@ class AgeService : Service() {
 
         initAgesChannel()
         initCountdownChannel()
-        initAgesNotification()
         initCountdownNotification()
+        initAgesNotification()
 
         countdownWorkThread.name = "countdownWorkThread"
         agesWorkThread.name = "agesWorkThread"
@@ -163,9 +163,9 @@ class AgeService : Service() {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
+
     private fun initAgesChannel() {
-        if (!this::agesChannel.isInitialized) {
+        if (!this::agesChannel.isInitialized && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             agesChannel = NotificationChannel(
                 CHANNEL_ID_AGES,
                 CHANNEL_ID_AGES,
@@ -182,9 +182,8 @@ class AgeService : Service() {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
     private fun initCountdownChannel() {
-        if (!this::countdownChannel.isInitialized) {
+        if (!this::countdownChannel.isInitialized && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             countdownChannel = NotificationChannel(
                 CHANNEL_ID_COUNTDOWN,
                 CHANNEL_ID_COUNTDOWN,

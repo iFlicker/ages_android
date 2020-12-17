@@ -20,9 +20,9 @@ import java.util.*
 class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
 
     companion object {
-        public var mDateOfBirth:Long = 0
-        public var mTargetAge:Int = 35
-        public var mTargetTimpStamp:Long = 3376656000000L // 2077年
+        var mDateOfBirth:Long = 0
+        var mTargetAge:Int = 35
+        var mTargetTimpStamp:Long = 3376656000000L // 2077年
         val PARAM_BIRTH = "birth"
         val PARAM_TARGET = "target"
     }
@@ -43,8 +43,13 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
 
         mDateOfBirth = getParam(PARAM_BIRTH, 0)
         mTargetAge = getParam(PARAM_TARGET, 35).toInt()
+        // 读取上次保存结果
         findViewById<EditText>(R.id.countdown_age).setText(mTargetAge.toString())
-
+        val formatDate: String = SimpleDateFormat("yyyy-MM-dd").format(Date(mDateOfBirth))
+        mDateTextView.text = formatDate
+        mCalendar.set(Calendar.YEAR, formatDate.split("-")[0].toInt())
+        mCalendar.set(Calendar.MONTH, formatDate.split("-")[1].toInt())
+        mCalendar.set(Calendar.DAY_OF_MONTH, formatDate.split("-")[2].toInt())
 
         findViewById<View>(R.id.pickDate).setOnClickListener {
             openDatePicker()
@@ -99,6 +104,8 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
     private fun updateTargetTime() {
         val targetYear = mCalendar.get(Calendar.YEAR) + mTargetAge
         if (targetYear < currentYear) {
+            var newStr: String = (mTargetAge + (currentYear - targetYear)).toString()
+            findViewById<EditText>(R.id.countdown_age).setText(newStr)
             Toast.makeText(this@MainActivity, "目标年龄低于当前年龄！", Toast.LENGTH_SHORT).show()
             return
         }
