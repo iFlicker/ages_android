@@ -50,6 +50,7 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
         mCalendar.set(Calendar.YEAR, formatDate.split("-")[0].toInt())
         mCalendar.set(Calendar.MONTH, formatDate.split("-")[1].toInt())
         mCalendar.set(Calendar.DAY_OF_MONTH, formatDate.split("-")[2].toInt())
+        updateTargetTime()
 
         findViewById<View>(R.id.pickDate).setOnClickListener {
             openDatePicker()
@@ -58,10 +59,7 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
         val intent = Intent(this, AgeService::class.java)
         findViewById<Switch>(R.id.switch_ages).setOnCheckedChangeListener { buttonView, isChecked ->
             intent.putExtra(AgeService.ACTION_TYPE, AgeService.ACTION_AGES)
-            if (isChecked)
-                intent.putExtra(AgeService.ACTION_STATE, true)
-            else
-                intent.putExtra(AgeService.ACTION_STATE, false)
+            intent.putExtra(AgeService.ACTION_STATE, isChecked)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 startForegroundService(intent)
@@ -71,10 +69,7 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
 
         findViewById<Switch>(R.id.switch_countdown).setOnCheckedChangeListener { buttonView, isChecked ->
             intent.putExtra(AgeService.ACTION_TYPE, AgeService.ACTION_COUNTDOWN)
-            if (isChecked)
-                intent.putExtra(AgeService.ACTION_STATE, true)
-            else
-                intent.putExtra(AgeService.ACTION_STATE, false)
+            intent.putExtra(AgeService.ACTION_STATE, isChecked)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 startForegroundService(intent)
@@ -104,7 +99,7 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
     private fun updateTargetTime() {
         val targetYear = mCalendar.get(Calendar.YEAR) + mTargetAge
         if (targetYear < currentYear) {
-            var newStr: String = (mTargetAge + (currentYear - targetYear)).toString()
+            var newStr: String = (mTargetAge + (currentYear - targetYear) + 1).toString()
             findViewById<EditText>(R.id.countdown_age).setText(newStr)
             Toast.makeText(this@MainActivity, "目标年龄低于当前年龄！", Toast.LENGTH_SHORT).show()
             return
