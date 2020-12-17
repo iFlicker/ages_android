@@ -12,4 +12,5 @@
 
     <string name="text_year3">距离35岁还有</string>
     <string name="text_far_from">距离</string>
+    <string name="text_switch_color">切换通知文字颜色</string>
 </resources>

@@ -58,9 +58,11 @@ class AgeService : Service() {
         appWidgetManager = AppWidgetManager.getInstance(this)
         agesNotifyRemoteView = RemoteViews(packageName, R.layout.layout_ages_notify)
         agesWidgetRemoteView = RemoteViews(packageName, R.layout.layout_ages_widget)
+        setTextColor(agesNotifyRemoteView, ACTION_AGES)
 
         countdownNotifyRemoteView = RemoteViews(packageName, R.layout.layout_countdown_notify)
         countdownWidgetRemoteView = RemoteViews(packageName, R.layout.layout_countdown_widget)
+        setTextColor(countdownNotifyRemoteView, ACTION_AGES)
 
         initAgesChannel()
         initCountdownChannel()
@@ -214,6 +216,7 @@ class AgeService : Service() {
 
             // 通知栏刷新
             agesNotification.contentView.setTextViewText(R.id.widget_years, time)
+            setTextColor(agesNotification.contentView, ACTION_AGES)
             notificationManager.notify(NOTIFY_ID_AGES, agesNotification)
 
             // widget刷新
@@ -250,6 +253,7 @@ class AgeService : Service() {
                 "距离" + mTargetYear + "岁还有"
             )
             countdownNotification.contentView.setTextViewText(R.id.widget_years, time)
+            setTextColor(countdownNotification.contentView, ACTION_COUNTDOWN)
             notificationManager.notify(NOTIFY_ID_COUNTDOWN, countdownNotification)
 
             // widget刷新
@@ -264,7 +268,7 @@ class AgeService : Service() {
             )
 
             try {
-                Thread.sleep(500)
+                Thread.sleep(300)
             } catch (e: Error) {
                 e.printStackTrace()
             }
@@ -281,6 +285,14 @@ class AgeService : Service() {
 
     override fun onBind(intent: Intent): IBinder? {
         return null
+    }
+
+    private fun setTextColor(remoteView: RemoteViews, type: Int) {
+        remoteView.setTextColor(R.id.widget_years_end, MainActivity.textColor)
+        remoteView.setTextColor(R.id.widget_years, MainActivity.textColor)
+
+        if (ACTION_COUNTDOWN == type)
+            remoteView.setTextColor(R.id.widget_far, MainActivity.textColor)
     }
 
 }

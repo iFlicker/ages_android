@@ -6,6 +6,7 @@ import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
@@ -25,6 +26,7 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
         var mTargetTimpStamp:Long = 3376656000000L // 2077年
         val PARAM_BIRTH = "birth"
         val PARAM_TARGET = "target"
+        var textColor = Color.BLACK
     }
 
     private val mCalendar:Calendar = Calendar.getInstance()
@@ -102,6 +104,15 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
                 }
             }
         )
+
+        var colorFlag = false
+        findViewById<Button>(R.id.switch_color).setOnClickListener{
+            colorFlag = !colorFlag
+            if (colorFlag)
+                textColor = Color.WHITE
+            else
+                textColor = Color.BLACK
+        }
 
     }
 

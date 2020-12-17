@@ -30,17 +30,16 @@
             android:layout_alignLeft="@+id/widget_far"
             android:background="@color/transparent"
             android:text="17.9294956"
-            android:textColor="@color/black"
             android:textSize="22sp" />
 
         <TextView
+            android:id="@+id/widget_years_end"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/widget_years"
             android:layout_alignTop="@+id/widget_years"
             android:background="@color/transparent"
             android:text="@string/text_year2"
-            android:textColor="@color/black"
             android:textSize="22sp" />
 
     </RelativeLayout>

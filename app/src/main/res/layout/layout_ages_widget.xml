@@ -20,15 +20,14 @@
             android:id="@+id/widget_years"
             android:textSize="22sp"
             android:text="17.9294956"
-            android:textColor="@color/black"
             android:background="@color/transparent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
         <TextView
+            android:id="@+id/widget_years_end"
             android:textSize="22sp"
             android:text="@string/text_year"
-            android:textColor="@color/black"
             android:background="@color/transparent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
