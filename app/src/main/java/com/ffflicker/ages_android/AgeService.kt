@@ -1,5 +1,6 @@
 package com.ffflicker.ages_android
 
+import android.annotation.TargetApi
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -25,26 +26,30 @@ class AgeService : Service() {
         public val ACTION_COUNTDOWN = 1
         public val ACTION_STATE = "action_state"
 
-        val CHANNEL_ID = "Ages"
-        val CHANNEL_NAME = "Ages"
+        val CHANNEL_ID_AGES = "Ages"
+        val CHANNEL_ID_COUNTDOWN = "CountDown"
         var year = 365 * 24 * 3600 * 1000.00
+        val NOTIFY_ID_AGES = 1
+        val NOTIFY_ID_COUNTDOWN = 2
     }
 
-    private lateinit var notificationManager:NotificationManager
+    private lateinit var notificationManager: NotificationManager
     private lateinit var appWidgetManager: AppWidgetManager
+    private lateinit var agesChannel: NotificationChannel
+    private lateinit var countdownChannel: NotificationChannel
 
     // ages
-    private lateinit var agesNotification:Notification
-    private lateinit var agesNotifyRemoteView:RemoteViews
-    private lateinit var agesWidgetRemoteView:RemoteViews
+    private lateinit var agesNotification: Notification
+    private lateinit var agesNotifyRemoteView: RemoteViews
+    private lateinit var agesWidgetRemoteView: RemoteViews
 
     // countdown
-    private lateinit var countdownNotification:Notification
-    private lateinit var countdownNotifyRemoteView:RemoteViews
-    private lateinit var countdownWidgetRemoteView:RemoteViews
+    private lateinit var countdownNotification: Notification
+    private lateinit var countdownNotifyRemoteView: RemoteViews
+    private lateinit var countdownWidgetRemoteView: RemoteViews
 
-    private val agesRunState:AtomicBoolean = AtomicBoolean(false)
-    private val countdownRunState:AtomicBoolean = AtomicBoolean(false)
+    private val agesRunState: AtomicBoolean = AtomicBoolean(false)
+    private val countdownRunState: AtomicBoolean = AtomicBoolean(false)
 
     override fun onCreate() {
         super.onCreate()
@@ -57,11 +62,13 @@ class AgeService : Service() {
         countdownNotifyRemoteView = RemoteViews(packageName, R.layout.layout_countdown_notify)
         countdownWidgetRemoteView = RemoteViews(packageName, R.layout.layout_countdown_widget)
 
-        initNotification()
-        initWidget()
+        initAgesChannel()
+        initCountdownChannel()
+        initAgesNotification()
+        initCountdownNotification()
 
-        agesWorkThread.start()
-        countdownWorkThread.start()
+        countdownWorkThread.name = "countdownWorkThread"
+        agesWorkThread.name = "agesWorkThread"
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -69,31 +76,36 @@ class AgeService : Service() {
 
         val state = intent.getBooleanExtra(ACTION_STATE, false)
         if (ACTION_AGES == intent.getIntExtra(ACTION_TYPE, 0)) {
+            if (state && !agesWorkThread.isAlive)
+                agesWorkThread.start()
             agesRunState.set(state)
+            if (!state)
+                closeNotify(ACTION_AGES)
         } else {
+            if (state && !countdownWorkThread.isAlive)
+                countdownWorkThread.start()
             countdownRunState.set(state)
+            if (!state)
+                closeNotify(ACTION_COUNTDOWN)
         }
 
         return START_NOT_STICKY
     }
 
-    private fun initNotification() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                    CHANNEL_ID,
-                    CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_HIGH
-            )
-            channel.setShowBadge(false)
-            channel.enableLights(false)
-            channel.enableVibration(false)
-            channel.setVibrationPattern(LongArray(1){0})
-            channel.setSound(null, null)
-            channel.description = CHANNEL_NAME
-            channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-            notificationManager.createNotificationChannel(channel)
+    private fun closeNotify(type: Int) {
+        if (ACTION_AGES == type) {
+            notificationManager.cancel(NOTIFY_ID_AGES);
+        }
 
-            agesNotification = Notification.Builder(this, CHANNEL_ID)
+        if (ACTION_COUNTDOWN == type) {
+            notificationManager.cancel(NOTIFY_ID_COUNTDOWN)
+        }
+    }
+
+    private fun initAgesNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!this::agesNotification.isInitialized) {
+                agesNotification = Notification.Builder(this, CHANNEL_ID_AGES)
                     .setContent(agesNotifyRemoteView)
                     .setCustomContentView(agesNotifyRemoteView)
                     .setCustomBigContentView(agesNotifyRemoteView)
@@ -102,98 +114,159 @@ class AgeService : Service() {
                     .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_ages))
                     .setOnlyAlertOnce(true)
                     .build()
-
-            countdownNotification = Notification.Builder(this, CHANNEL_ID)
-                .setContent(countdownNotifyRemoteView)
-                .setCustomContentView(countdownNotifyRemoteView)
-                .setCustomBigContentView(countdownNotifyRemoteView)
-                .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.icon_ages)
-                .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_ages))
-                .setOnlyAlertOnce(true)
-                .build()
-
-            startForeground(1, agesNotification)
-            startForeground(2, countdownNotification)
+            }
+            // 前台service保活 这个就不关了
+            startForeground(NOTIFY_ID_AGES, agesNotification)
         } else {
-            agesNotification = Notification.Builder(this)
+            if (!this::agesNotification.isInitialized) {
+                agesNotification = Notification.Builder(this)
                     .setContent(agesNotifyRemoteView)
                     .setWhen(System.currentTimeMillis())
                     .setSmallIcon(R.drawable.icon_ages)
                     .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_ages))
                     .setDefaults(8) // NotificationCompat.FLAG_ONLY_ALERT_ONCE
-                    .setVibrate(LongArray(1){0})
+                    .setVibrate(LongArray(1) { 0 })
                     .setOnlyAlertOnce(true)
                     .setSound(null)
                     .build()
-
-            countdownNotification = Notification.Builder(this)
-                .setContent(countdownNotifyRemoteView)
-                .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.icon_ages)
-                .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_ages))
-                .setDefaults(8) // NotificationCompat.FLAG_ONLY_ALERT_ONCE
-                .setVibrate(LongArray(1){0})
-                .setOnlyAlertOnce(true)
-                .setSound(null)
-                .build()
-
-            notificationManager.notify(1, agesNotification)
-            notificationManager.notify(2, countdownNotification)
+            }
         }
     }
 
-    private fun initWidget() {
+    private fun initCountdownNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!this::countdownNotification.isInitialized) {
+                countdownNotification = Notification.Builder(this, CHANNEL_ID_COUNTDOWN)
+                    .setContent(countdownNotifyRemoteView)
+                    .setCustomContentView(countdownNotifyRemoteView)
+                    .setCustomBigContentView(countdownNotifyRemoteView)
+                    .setWhen(System.currentTimeMillis())
+                    .setSmallIcon(R.drawable.icon_ages)
+                    .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_ages))
+                    .setOnlyAlertOnce(true)
+                    .build()
+            }
+            startForeground(NOTIFY_ID_COUNTDOWN, countdownNotification)
+        } else {
+            if (!this::countdownNotification.isInitialized) {
+                countdownNotification = Notification.Builder(this)
+                    .setContent(countdownNotifyRemoteView)
+                    .setWhen(System.currentTimeMillis())
+                    .setSmallIcon(R.drawable.icon_ages)
+                    .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_ages))
+                    .setDefaults(8) // NotificationCompat.FLAG_ONLY_ALERT_ONCE
+                    .setVibrate(LongArray(1) { 0 })
+                    .setOnlyAlertOnce(true)
+                    .setSound(null)
+                    .build()
+            }
+        }
+    }
 
+    @TargetApi(Build.VERSION_CODES.O)
+    private fun initAgesChannel() {
+        if (!this::agesChannel.isInitialized) {
+            agesChannel = NotificationChannel(
+                CHANNEL_ID_AGES,
+                CHANNEL_ID_AGES,
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            agesChannel.setShowBadge(false)
+            agesChannel.enableLights(false)
+            agesChannel.enableVibration(false)
+            agesChannel.setVibrationPattern(LongArray(1) { 0 })
+            agesChannel.setSound(null, null)
+            agesChannel.description = CHANNEL_ID_AGES
+            agesChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            notificationManager.createNotificationChannel(agesChannel)
+        }
+    }
 
-
+    @TargetApi(Build.VERSION_CODES.O)
+    private fun initCountdownChannel() {
+        if (!this::countdownChannel.isInitialized) {
+            countdownChannel = NotificationChannel(
+                CHANNEL_ID_COUNTDOWN,
+                CHANNEL_ID_COUNTDOWN,
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            countdownChannel.setShowBadge(false)
+            countdownChannel.enableLights(false)
+            countdownChannel.enableVibration(false)
+            countdownChannel.setVibrationPattern(LongArray(1) { 0 })
+            countdownChannel.setSound(null, null)
+            countdownChannel.description = CHANNEL_ID_COUNTDOWN
+            countdownChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            notificationManager.createNotificationChannel(countdownChannel)
+        }
     }
 
 
-    private val agesWorkThread:Thread = Thread {
+    private val agesWorkThread: Thread = Thread {
         while (true) {
             if (!agesRunState.get()) continue
 
             // 算时间
-            val time = DecimalFormat("0.00000000").format(((System.currentTimeMillis() - MainActivity.mDateOfBirth) / year * 100000000).roundToLong().toDouble() / 100000000)
+            val time = DecimalFormat("0.00000000").format(
+                ((System.currentTimeMillis() - MainActivity.mDateOfBirth) / year * 100000000).roundToLong()
+                    .toDouble() / 100000000
+            )
             Log.d(TAG, "agesWorkThread time: $time")
 
             // 通知栏刷新
             agesNotification.contentView.setTextViewText(R.id.widget_years, time)
-            notificationManager.notify(1, agesNotification)
+            notificationManager.notify(NOTIFY_ID_AGES, agesNotification)
 
             // widget刷新
             agesWidgetRemoteView.setTextViewText(R.id.widget_years, time)
-            appWidgetManager.updateAppWidget(ComponentName(this, WidgetProvider::class.java), agesWidgetRemoteView)
+            appWidgetManager.updateAppWidget(
+                ComponentName(this, AgesWidgetProvider::class.java),
+                agesWidgetRemoteView
+            )
 
             try {
                 Thread.sleep(300)
-            }catch(e: Error) {
+            } catch (e: Error) {
                 e.printStackTrace()
             }
         }
     }
 
-    private val countdownWorkThread:Thread = Thread {
+    private val countdownWorkThread: Thread = Thread {
+        var mTargetYear = 35
         while (true) {
             if (!countdownRunState.get()) continue
 
             // 算时间
-            val time = DecimalFormat("0.00000000").format(((System.currentTimeMillis() - MainActivity.mDateOfBirth) / year * 100000000).roundToLong().toDouble() / 100000000)
+            mTargetYear = MainActivity.mTargetAge
+            val time = DecimalFormat("0.00000000").format(
+                ((MainActivity.mTargetTimpStamp - System.currentTimeMillis()) / year * 100000000).roundToLong()
+                    .toDouble() / 100000000
+            )
             Log.d(TAG, "countdownWorkThread time: $time")
 
             // 通知栏刷新
-            countdownNotification.contentView.setTextViewText(R.id.widget_far, "距离"+ MainActivity.mTargetYear + "岁还有")
+            countdownNotification.contentView.setTextViewText(
+                R.id.widget_far,
+                "距离" + mTargetYear + "岁还有"
+            )
             countdownNotification.contentView.setTextViewText(R.id.widget_years, time)
-            notificationManager.notify(1, countdownNotification)
+            notificationManager.notify(NOTIFY_ID_COUNTDOWN, countdownNotification)
 
             // widget刷新
+            countdownWidgetRemoteView.setTextViewText(
+                R.id.widget_far,
+                "距离" + mTargetYear + "岁还有"
+            )
             countdownWidgetRemoteView.setTextViewText(R.id.widget_years, time)
-            appWidgetManager.updateAppWidget(ComponentName(this, WidgetProvider::class.java), countdownWidgetRemoteView)
+            appWidgetManager.updateAppWidget(
+                ComponentName(this, CountdownWidgetProvider::class.java),
+                countdownWidgetRemoteView
+            )
 
             try {
-                Thread.sleep(300)
-            }catch(e: Error) {
+                Thread.sleep(500)
+            } catch (e: Error) {
                 e.printStackTrace()
             }
         }
@@ -205,7 +278,6 @@ class AgeService : Service() {
             stopForeground(true)
         super.onDestroy()
     }
-
 
 
     override fun onBind(intent: Intent): IBinder? {

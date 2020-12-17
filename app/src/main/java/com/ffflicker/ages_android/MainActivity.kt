@@ -12,10 +12,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.view.WindowManager
-import android.widget.DatePicker
-import android.widget.EditText
-import android.widget.Switch
-import android.widget.TextView
+import android.widget.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,7 +21,8 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
 
     companion object {
         public var mDateOfBirth:Long = 0
-        public var mTargetYear:Int = 35
+        public var mTargetAge:Int = 35
+        public var mTargetTimpStamp:Long = 3376656000000L // 2077年
         val PARAM_BIRTH = "birth"
         val PARAM_TARGET = "target"
     }
@@ -32,17 +30,20 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
     private val mCalendar:Calendar = Calendar.getInstance()
     private lateinit var mDateTextView:TextView
     private lateinit var mSP:SharedPreferences
+    private var currentYear = 2020
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        currentYear = SimpleDateFormat("yyyy").format(Date(System.currentTimeMillis())).toInt()
+
         mSP = getSharedPreferences("ages", MODE_PRIVATE)
         mDateTextView = findViewById(R.id.date)
 
         mDateOfBirth = getParam(PARAM_BIRTH, 0)
-        mTargetYear = getParam(PARAM_TARGET, 35).toInt()
-        findViewById<EditText>(R.id.countdown_age).setText(mTargetYear.toString())
+        mTargetAge = getParam(PARAM_TARGET, 35).toInt()
+        findViewById<EditText>(R.id.countdown_age).setText(mTargetAge.toString())
 
 
         findViewById<View>(R.id.pickDate).setOnClickListener {
@@ -85,12 +86,27 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
                 }
 
                 override fun afterTextChanged(s: Editable?) {
-                    mTargetYear = s.toString() as Int
-                    saveParam(PARAM_TARGET, mTargetYear.toLong())
+                    mTargetAge = s.toString().toInt()
+                    // 根据当前结果生日算出目标年龄时间戳
+                    updateTargetTime()
+                    saveParam(PARAM_TARGET, mTargetAge.toLong())
                 }
             }
         )
 
+    }
+
+    private fun updateTargetTime() {
+        val targetYear = mCalendar.get(Calendar.YEAR) + mTargetAge
+        if (targetYear < currentYear) {
+            Toast.makeText(this@MainActivity, "目标年龄低于当前年龄！", Toast.LENGTH_SHORT).show()
+            return
+        }
+        var calendar = Calendar.getInstance()
+        calendar.set(Calendar.YEAR, targetYear)
+        calendar.set(Calendar.MONTH, mCalendar.get(Calendar.MONTH))
+        calendar.set(Calendar.DAY_OF_MONTH, mCalendar.get(Calendar.DAY_OF_MONTH))
+        mTargetTimpStamp = calendar.timeInMillis
     }
 
     private fun saveParam(key:String, value:Long ) {
@@ -121,6 +137,7 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
                 mCalendar.set(Calendar.DAY_OF_MONTH, day)
                 mDateTextView.text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(mCalendar.time)
                 mDateOfBirth = mCalendar.timeInMillis
+                updateTargetTime()
                 saveParam(PARAM_BIRTH, mDateOfBirth)
                 dialog.cancel()
             }
@@ -139,6 +156,7 @@ class MainActivity : Activity(), DatePickerDialog.OnDateSetListener {
         mCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
         mDateTextView.text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(mCalendar.time)
         mDateOfBirth = mCalendar.timeInMillis
+        updateTargetTime()
         saveParam(PARAM_BIRTH, mDateOfBirth)
     }
 
