@@ -115,8 +115,8 @@ class AgeService : Service() {
                     .setCustomContentView(agesNotifyRemoteView)
                     .setCustomBigContentView(agesNotifyRemoteView)
                     .setWhen(System.currentTimeMillis())
-                    .setSmallIcon(R.drawable.icon_ages)
-                    .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_ages))
+                    .setSmallIcon(R.drawable.icon_age)
+                    .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_age))
                     .setOnlyAlertOnce(true)
                     .build()
             }
@@ -127,8 +127,8 @@ class AgeService : Service() {
                 agesNotification = Notification.Builder(this)
                     .setContent(agesNotifyRemoteView)
                     .setWhen(System.currentTimeMillis())
-                    .setSmallIcon(R.drawable.icon_ages)
-                    .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_ages))
+                    .setSmallIcon(R.drawable.icon_age)
+                    .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_age))
                     .setDefaults(8) // NotificationCompat.FLAG_ONLY_ALERT_ONCE
                     .setVibrate(LongArray(1) { 0 })
                     .setOnlyAlertOnce(true)
@@ -146,8 +146,8 @@ class AgeService : Service() {
                     .setCustomContentView(countdownNotifyRemoteView)
                     .setCustomBigContentView(countdownNotifyRemoteView)
                     .setWhen(System.currentTimeMillis())
-                    .setSmallIcon(R.drawable.icon_ages)
-                    .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_ages))
+                    .setSmallIcon(R.drawable.icon_age)
+                    .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_age))
                     .setOnlyAlertOnce(true)
                     .build()
             }
@@ -157,8 +157,8 @@ class AgeService : Service() {
                 countdownNotification = Notification.Builder(this)
                     .setContent(countdownNotifyRemoteView)
                     .setWhen(System.currentTimeMillis())
-                    .setSmallIcon(R.drawable.icon_ages)
-                    .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_ages))
+                    .setSmallIcon(R.drawable.icon_age)
+                    .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.icon_age))
                     .setDefaults(8) // NotificationCompat.FLAG_ONLY_ALERT_ONCE
                     .setVibrate(LongArray(1) { 0 })
                     .setOnlyAlertOnce(true)
